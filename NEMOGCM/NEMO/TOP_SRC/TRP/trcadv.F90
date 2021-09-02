@@ -26,6 +26,7 @@ MODULE trcadv
    USE traadv_mle      ! ML eddy induced velocity  (tra_adv_mle    routine)
    USE ldftra_oce      ! lateral diffusion coefficient on tracers
    USE prtctl_trc      ! Print control
+   USE iom             ! I/O module
 
    IMPLICIT NONE
    PRIVATE
@@ -88,32 +89,41 @@ CONTAINS
          r2dt(:) = 2. * rdttrc(:)       ! = 2 rdttrc (leapfrog)
       ENDIF
       !  
+      IF( lk_offline ) THEN
+         zun(:,:,:) = un(:,:,:)     ! effective transport already in un/vn/wn
+         zvn(:,:,:) = vn(:,:,:)
+         zwn(:,:,:) = wn(:,:,:)
 
-      !                                                         ! effective transport
-      DO jk = 1, jpkm1
-         !                                                ! eulerian transport only
-         zun(:,:,jk) = e2u  (:,:) * fse3u(:,:,jk) * un(:,:,jk)
-         zvn(:,:,jk) = e1v  (:,:) * fse3v(:,:,jk) * vn(:,:,jk)
-         zwn(:,:,jk) = e1e2t(:,:)                 * wn(:,:,jk)
+         ! output of transport variables 
+         CALL iom_put( "uocetr_eff", zun )                                         ! output effective transport      
+         CALL iom_put( "vocetr_eff", zvn )
+         CALL iom_put( "wocetr_eff", zwn )
+      ELSE
+         !                                                         ! effective transport
+         DO jk = 1, jpkm1
+            !                                                ! eulerian transport only
+            zun(:,:,jk) = e2u  (:,:) * fse3u(:,:,jk) * un(:,:,jk)
+            zvn(:,:,jk) = e1v  (:,:) * fse3v(:,:,jk) * vn(:,:,jk)
+            zwn(:,:,jk) = e1e2t(:,:)                 * wn(:,:,jk)
+            !
+         END DO
          !
-      END DO
-      !
-      IF( ln_vvl_ztilde .OR. ln_vvl_layer ) THEN
-         zun(:,:,:) = zun(:,:,:) + un_td(:,:,:)
-         zvn(:,:,:) = zvn(:,:,:) + vn_td(:,:,:)
+         IF( ln_vvl_ztilde .OR. ln_vvl_layer ) THEN
+            zun(:,:,:) = zun(:,:,:) + un_td(:,:,:)
+            zvn(:,:,:) = zvn(:,:,:) + vn_td(:,:,:)
+         ENDIF
+         !
+         zun(:,:,jpk) = 0._wp                                                     ! no transport trough the bottom
+         zvn(:,:,jpk) = 0._wp                                                     ! no transport trough the bottom
+         zwn(:,:,jpk) = 0._wp                                                     ! no transport trough the bottom
+         !
+
+         IF( lk_traldf_eiv .AND. .NOT. ln_traldf_grif )   &  ! add the eiv transport (if necessary)
+            &              CALL tra_adv_eiv( kt, nittrc000, zun, zvn, zwn, 'TRC' )
+         !
+         IF( ln_mle    )   CALL tra_adv_mle( kt, nittrc000, zun, zvn, zwn, 'TRC' )    ! add the mle transport (if necessary)
+         !
       ENDIF
-      !
-      zun(:,:,jpk) = 0._wp                                                     ! no transport trough the bottom
-      zvn(:,:,jpk) = 0._wp                                                     ! no transport trough the bottom
-      zwn(:,:,jpk) = 0._wp                                                     ! no transport trough the bottom
-      !
-
-      IF( lk_traldf_eiv .AND. .NOT. ln_traldf_grif )   &  ! add the eiv transport (if necessary)
-         &              CALL tra_adv_eiv( kt, nittrc000, zun, zvn, zwn, 'TRC' )
-      !
-      IF( ln_mle    )   CALL tra_adv_mle( kt, nittrc000, zun, zvn, zwn, 'TRC' )    ! add the mle transport (if necessary)
-      !
-
       !
       SELECT CASE ( nadv )                            !==  compute advection trend and add it to general trend  ==!
       CASE ( 1 )   ;    CALL tra_adv_cen2  ( kt, nittrc000, 'TRC',       zun, zvn, zwn, trb, trn, tra, jptra )   !  2nd order centered
