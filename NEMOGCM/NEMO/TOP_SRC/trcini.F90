@@ -31,6 +31,7 @@ MODULE trcini
    USE lib_mpp         ! distribued memory computing library
    USE sbc_oce
    USE trcice          ! tracers in sea ice
+   USE trcbc,   only : trc_bc_init ! generalized Boundary Conditions
  
    IMPLICIT NONE
    PRIVATE
@@ -41,7 +42,7 @@ MODULE trcini
 #  include "domzgr_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/TOP 4.0 , NEMO Consortium (2011)
-   !! $Id: trcini.F90 8353 2017-07-19 14:41:00Z lovato $
+   !! $Id$
    !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -109,8 +110,11 @@ CONTAINS
          !
       ENDIF
 
+      ! Initialisation of tracers Initial Conditions
       IF( ln_trcdta )      CALL trc_dta_init(jptra)
 
+      ! Initialisation of tracers Boundary Conditions
+      CALL trc_bc_init(jptra)
 
       IF( ln_rsttr ) THEN
         !

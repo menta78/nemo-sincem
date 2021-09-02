@@ -116,5 +116,19 @@
 !-----------------------------------------------------------------------
 &namtrc_bc
 !
-   cn_dir        =  './'      !  root directory for the location of the data files
+   cn_dir_sbc        =  './'      !  root directory for the location of SURFACE data files
+   cn_dir_cbc        =  './'      !  root directory for the location of COASTAL data files
+   cn_dir_obc        =  './'      !  root directory for the location of OPEN data files
+/
+!----------------------------------------------------------------------
+!namtrc_bdy       !   Setup of tracer boundary conditions
+!-----------------------------------------------------------------------
+$namtrc_bdy 
+   cn_trc_dflt     =  'neumann'    !  OBC applied by default to all tracers
+   cn_trc          =  'none'       !  Boundary conditions applied to user selected tracers (see namtrc)
+
+   nn_trcdmp_bdy   = 0     !  Use damping timescales defined in nambdy of namelist
+                           !  = 0 NO damping of tracers at open boudaries
+                           !  = 1 Only for tracers forced with external data
+                           !  = 2 Damping applied to all tracers
 /

@@ -39,7 +39,7 @@ MODULE trcnam
 #  include "top_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/TOP 3.3 , NEMO Consortium (2010)
-   !! $Id: trcnam.F90 10254 2018-10-29 16:53:15Z lovato $
+   !! $Id$
    !! Software governed by the CeCILL licence (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 
@@ -262,8 +262,8 @@ CONTAINS
       INTEGER  ::   jn                  ! dummy loop indice
       !!---------------------------------------------------------------------
       ! Dummy settings to fill tracers data structure
-      !                  !   name   !   title   !   unit   !   init  !  save  !
-      sn_tracer = PTRACER( 'NONAME' , 'NOTITLE' , 'NOUNIT' , .false. , .false.)
+      !                  !   name   !   title   !   unit   !   init  !   sbc   !   cbc   !   obc  !  save  !
+      sn_tracer = PTRACER( 'NONAME' , 'NOTITLE' , 'NOUNIT' , .false. , .false. , .false. , .false., .false.) 
       !
       IF(lwp) WRITE(numout,*)
       IF(lwp) WRITE(numout,*) 'trc_nam_trc : read the passive tracer namelists'
@@ -284,9 +284,12 @@ CONTAINS
          ctrcln    (jn) = TRIM( sn_tracer(jn)%cllname )
          ctrcun    (jn) = TRIM( sn_tracer(jn)%clunit  )
          ln_trc_ini(jn) =       sn_tracer(jn)%llinit
+         ln_trc_sbc(jn) =       sn_tracer(jn)%llsbc
+         ln_trc_cbc(jn) =       sn_tracer(jn)%llcbc
+         ln_trc_obc(jn) =       sn_tracer(jn)%llobc
          ln_trc_wri(jn) =       sn_tracer(jn)%llsave
       END DO
-      
+
     END SUBROUTINE trc_nam_trc
 
 
@@ -336,7 +339,7 @@ CONTAINS
          WRITE(numout,*) ' '
       ENDIF
 
-      IF( ln_diatrc ) THEN 
+      IF( ln_diatrc .AND. .NOT. lk_iomput ) THEN 
          ALLOCATE( trc2d(jpi,jpj,jpdia2d), trc3d(jpi,jpj,jpk,jpdia3d),  &
            &       ctrc2d(jpdia2d), ctrc2l(jpdia2d), ctrc2u(jpdia2d) ,  & 
            &       ctrc3d(jpdia3d), ctrc3l(jpdia3d), ctrc3u(jpdia3d) ,  STAT = ierr ) 
@@ -347,7 +350,7 @@ CONTAINS
          !
       ENDIF
 
-      IF( ln_diabio .OR. l_trdtrc ) THEN
+      IF( ( ln_diabio .AND. .NOT. lk_iomput ) .OR. l_trdtrc ) THEN
          ALLOCATE( trbio (jpi,jpj,jpk,jpdiabio) , &
            &       ctrbio(jpdiabio), ctrbil(jpdiabio), ctrbiu(jpdiabio), STAT = ierr ) 
          IF( ierr > 0 )   CALL ctl_stop( 'STOP', 'trcnam: unable to allocate bio. diag. array' )
@@ -398,7 +401,7 @@ CONTAINS
 
    !!----------------------------------------------------------------------
    !! NEMO/TOP 3.3 , NEMO Consortium (2010)
-   !! $Id: trcnam.F90 10254 2018-10-29 16:53:15Z lovato $
+   !! $Id$
    !! Software governed by the CeCILL licence (NEMOGCM/NEMO_CeCILL.txt)
    !!======================================================================
 END MODULE trcnam

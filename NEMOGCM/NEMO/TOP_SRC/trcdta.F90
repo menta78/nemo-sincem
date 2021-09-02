@@ -8,8 +8,9 @@ MODULE trcdta
    !!              -   !  2005-03  (O. Aumont, A. El Moussaoui) F90
    !!            3.4   !  2010-11  (C. Ethe, G. Madec)  use of fldread + dynamical allocation 
    !!            3.5   !  2013-08  (M. Vichi)  generalization for other BGC models
+   !!            3.6   !  2015-03  (T. Lovato) revision of code log info
    !!----------------------------------------------------------------------
-#if  defined key_top 
+#if defined key_top 
    !!----------------------------------------------------------------------
    !!   'key_top'                                                TOP model 
    !!----------------------------------------------------------------------
@@ -39,7 +40,7 @@ MODULE trcdta
 #  include "domzgr_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OPA 3.3 , NEMO Consortium (2010)
-   !! $Id: trcdta.F90 8543 2017-09-19 10:27:07Z cetlod $ 
+   !! $Id$ 
    !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -71,6 +72,12 @@ CONTAINS
       !
       IF( nn_timing == 1 )  CALL timing_start('trc_dta_init')
       !
+      IF( lwp ) THEN
+         WRITE(numout,*) ' '
+         WRITE(numout,*) '  trc_dta_init : Tracers Initial Conditions (IC)'
+         WRITE(numout,*) '  ~~~~~~~~~~~ '
+      ENDIF
+      !
       !  Initialisation
       ierr0 = 0  ;  ierr1 = 0  ;  ierr2 = 0  ;  ierr3 = 0  
       ! Compute the number of tracers to be initialised with data
@@ -90,37 +97,33 @@ CONTAINS
       ntra = MAX( 1, nb_trcdta )   ! To avoid compilation error with bounds checking
       IF(lwp) THEN
          WRITE(numout,*) ' '
-         WRITE(numout,*) 'trc_dta_init : Passive tracers Initial Conditions '
-         WRITE(numout,*) '~~~~~~~~~~~~~~ '
          WRITE(numout,*) ' number of passive tracers to be initialize by data :', ntra
          WRITE(numout,*) ' '
       ENDIF
       !
       REWIND( numnat_ref )              ! Namelist namtrc_dta in reference namelist : Passive tracer input data
       READ  ( numnat_ref, namtrc_dta, IOSTAT = ios, ERR = 901)
-901   IF( ios /= 0 ) CALL ctl_nam ( ios , 'namtrc_dta in reference namelist', lwp )
+901   IF( ios /= 0 ) CALL ctl_nam ( ios , 'namtrc_dta_init in reference namelist', lwp )
 
       REWIND( numnat_cfg )              ! Namelist namtrc_dta in configuration namelist : Passive tracer input data
       READ  ( numnat_cfg, namtrc_dta, IOSTAT = ios, ERR = 902 )
-902   IF( ios /= 0 ) CALL ctl_nam ( ios , 'namtrc_dta in configuration namelist', lwp )
+902   IF( ios /= 0 ) CALL ctl_nam ( ios , 'namtrc_dta_init in configuration namelist', lwp )
       IF(lwm) WRITE ( numont, namtrc_dta )
 
       IF( lwp ) THEN
          DO jn = 1, ntrc
             IF( ln_trc_ini(jn) )  THEN    ! open input file only if ln_trc_ini(jn) is true
-               clndta = TRIM( sn_trcdta(jn)%clvar )
-               if (jn > jptra) then
-                  clntrc='Dummy' ! By pass weird formats in ocean.output if ntrc > jptra
-               else
-                  clntrc = TRIM( ctrcnm   (jn)       )
-               endif
+               clndta = TRIM( sn_trcdta(jn)%clvar ) 
+               clntrc = TRIM( ctrcnm   (jn)       ) 
+               if (jn > jptra) clntrc='Dummy' ! By pass weird formats in ocean.output if ntrc > jptra
                zfact  = rn_trfac(jn)
-               IF( clndta /=  clntrc ) THEN
+               IF( clndta /=  clntrc ) THEN 
                   CALL ctl_warn( 'trc_dta_init: passive tracer data initialisation    ',   &
-                  &              'Input name of data file : '//TRIM(clndta)//   &
+                  &              'Input name of data file : '//TRIM(clndta)//   & 
                   &              ' differs from that of tracer : '//TRIM(clntrc)//' ')
                ENDIF
-               WRITE(numout,'(a, i4,3a,e11.3)') ' Read IC file for tracer number :', &
+               WRITE(numout,*) ' ' 
+               WRITE(numout,'(a, i3,3a,e11.3)') ' Read IC file for tracer number :', & 
                &            jn, ', name : ', TRIM(clndta), ', Multiplicative Scaling factor : ', zfact
             ENDIF
          END DO

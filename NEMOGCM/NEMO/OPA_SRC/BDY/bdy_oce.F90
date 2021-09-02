@@ -70,6 +70,12 @@ MODULE bdy_oce
       REAL, POINTER, DIMENSION(:,:)   ::  ht_i  !: Now ice  thickness climatology
       REAL, POINTER, DIMENSION(:,:)   ::  ht_s  !: now snow thickness
 #endif
+#if defined key_top
+      CHARACTER(LEN=20)                   :: cn_obc  !: type of boundary condition to apply
+      REAL(wp)                            :: rn_fac  !: multiplicative scaling factor
+      REAL(wp), POINTER, DIMENSION(:,:)   :: trc     !: now field of the tracer
+      LOGICAL                             :: dmp     !: obc damping term
+#endif
    END TYPE OBC_DATA
 
    !!----------------------------------------------------------------------
@@ -134,7 +140,7 @@ MODULE bdy_oce
 !$AGRIF_END_DO_NOT_TREAT
    !!----------------------------------------------------------------------
    !! NEMO/OPA 4.0 , NEMO Consortium (2011)
-   !! $Id: bdy_oce.F90 4699 2014-07-02 11:39:48Z clem $ 
+   !! $Id$ 
    !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 CONTAINS
