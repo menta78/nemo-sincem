@@ -41,6 +41,12 @@ MODULE nemogcm
 #if defined key_iomput
    USE xios
 #endif 
+#if defined key_bdy
+   USE bdyini          ! open boundary cond. setting       (bdy_init routine). clem: mandatory for LIM3
+   USE bdydta          ! open boundary cond. setting   (bdy_dta_init routine). clem: mandatory for LIM3
+   USE bdy_oce   , ONLY: bdy_oce_alloc
+#endif
+   USE bdy_par
    USE prtctl          ! Print control                    (prt_ctl_init routine)
    USE timing          ! Timing
    USE lib_fortran     ! Fortran utilities (allows no signed zero when 'key_nosignedzero' defined)
@@ -283,6 +289,15 @@ CONTAINS
 
                             CALL     sbc_init   ! Forcings : surface module
 
+      ! ==> clem: open boundaries init. is mandatory for LIM3 because ice BDY is not decoupled from  
+      !           the environment of ocean BDY. Therefore bdy is called in both OPA and SAS modules. 
+      !           This is not clean and should be changed in the future. 
+#if defined key_bdy
+      IF( lk_bdy        )   CALL     bdy_init
+      IF( lk_bdy        )   CALL bdy_dta_init
+      ! ==>
+#endif
+
 #if ! defined key_degrad
                             CALL ldf_tra_init   ! Lateral ocean tracer physics
 #endif
@@ -456,6 +471,9 @@ CONTAINS
       !
       ierr = ierr + trc_oce_alloc   ()          ! shared TRC / TRA arrays
       !
+#if defined key_bdy
+      ierr = ierr + bdy_oce_alloc   ()          ! bdy masks (incl. initialization)
+#endif
       IF( lk_mpp    )   CALL mpp_sum( ierr )
       IF( ierr /= 0 )   CALL ctl_stop( 'STOP', 'nemo_alloc: unable to allocate standard ocean arrays' )
       !
