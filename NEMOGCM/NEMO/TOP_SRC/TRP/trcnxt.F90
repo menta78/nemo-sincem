@@ -32,6 +32,8 @@ MODULE trcnxt
    USE trd_oce
    USE trdtra
    USE tranxt
+   USE trcbdy          ! BDY open boundaries
+   USE bdy_par, only: lk_bdy
 # if defined key_agrif
    USE agrif_top_interp
 # endif
@@ -50,7 +52,7 @@ MODULE trcnxt
 #  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/TOP 3.3 , NEMO Consortium (2010)
-   !! $Id: trcnxt.F90 8398 2017-08-01 13:15:00Z lovato $ 
+   !! $Id$ 
    !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 
@@ -115,9 +117,7 @@ CONTAINS
       END DO
 
 
-#if defined key_bdy
-!!      CALL bdy_trc( kt )               ! BDY open boundaries
-#endif
+      IF( lk_bdy )  CALL trc_bdy( kt )               ! BDY open boundaries
 
 
       ! set time step size (Euler/Leapfrog)

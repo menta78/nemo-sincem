@@ -36,7 +36,7 @@ CONTAINS
       ! ---------------------------------------
       DO jn = jp_myt0, jp_myt1
          cltra = TRIM( ctrcnm(jn) )                  ! short title for tracer
-         CALL iom_put( cltra, trn(:,:,:,jn) )
+         IF( ln_trc_wri(jn) ) CALL iom_put( cltra, trn(:,:,:,jn) )
       END DO
       !
    END SUBROUTINE trc_wri_my_trc

@@ -26,6 +26,8 @@ MODULE trctrp
    USE trcrad          ! positivity                          (trc_rad routine)
    USE trcsbc          ! surface boundary condition          (trc_sbc routine)
    USE zpshde          ! partial step: hor. derivative       (zps_hde routine)
+   USE trcbdy          ! BDY open boundaries
+   USE bdy_par, only: lk_bdy
 
 #if defined key_agrif
    USE agrif_top_sponge ! tracers sponges
@@ -41,7 +43,7 @@ MODULE trctrp
 #  include "top_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/TOP 3.3 , NEMO Consortium (2010)
-   !! $Id: trctrp.F90 6959 2016-09-26 22:12:42Z cetlod $ 
+   !! $Id$ 
    !! Software governed by the CeCILL licence (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 
@@ -67,6 +69,7 @@ CONTAINS
          IF( lk_trabbl )        CALL trc_bbl( kstp )            ! advective (and/or diffusive) bottom boundary layer scheme
          IF( ln_trcdmp )        CALL trc_dmp( kstp )            ! internal damping trends
                                 CALL trc_adv( kstp )            ! horizontal & vertical advection 
+         IF( lk_bdy )           CALL trc_bdy_dmp( kstp )        ! BDY damping trends
          IF( ln_zps ) THEN
            IF( ln_isfcav ) THEN ; CALL zps_hde_isf( kstp, jptra, trb, pgtu=gtru, pgtv=gtrv, pgtui=gtrui, pgtvi=gtrvi )  ! both top & bottom
            ELSE                 ; CALL zps_hde    ( kstp, jptra, trb, gtru, gtrv )                                      !  only bottom

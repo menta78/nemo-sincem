@@ -17,6 +17,7 @@ MODULE trcsms_my_trc
    USE trc             ! TOP variables
    USE trd_oce
    USE trdtrc
+   USE trcbc, only : trc_bc_read
 
    IMPLICIT NONE
    PRIVATE
@@ -28,7 +29,7 @@ MODULE trcsms_my_trc
 
    !!----------------------------------------------------------------------
    !! NEMO/TOP 3.3 , NEMO Consortium (2010)
-   !! $Id: trcsms_my_trc.F90 5385 2015-06-09 13:50:42Z cetlod $
+   !! $Id$
    !! Software governed by the CeCILL licence     (NEMOGCM/NEMO_CeCILL.txt)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -55,7 +56,12 @@ CONTAINS
 
       IF( l_trdtrc )  CALL wrk_alloc( jpi, jpj, jpk, ztrmyt )
 
-      IF( l_trdtrc ) THEN      ! Save the trends in the ixed layer
+      CALL trc_bc_read  ( kt )       ! tracers: surface and lateral Boundary Conditions 
+
+      ! add here the call to BGC model
+
+
+      IF( l_trdtrc ) THEN      ! Save the trends in the mixed layer
           DO jn = jp_myt0, jp_myt1
             ztrmyt(:,:,:) = tra(:,:,:,jn)
             CALL trd_trc( ztrmyt, jn, jptra_sms, kt )   ! save trends
