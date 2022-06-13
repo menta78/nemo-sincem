@@ -84,6 +84,7 @@ CONTAINS
       !! References : Madec, Delecluse,Imbard, and Levy, 1997:  internal report, IPSL.
       !!              Madec, 2008, internal report, IPSL.
       !!----------------------------------------------------------------------
+      USE diawri_off,       ONLY: dia_wri_off
       INTEGER :: istp, indic       ! time step index
       !!----------------------------------------------------------------------
 
@@ -107,6 +108,7 @@ CONTAINS
                                 CALL dta_dyn    ( istp )         ! Interpolation of the dynamical fields
                                 CALL trc_stp    ( istp )         ! time-stepping
          IF( lk_vvl )           CALL dta_dyn_swp( istp )         ! swap of sea surface height and vertical scale factors
+                                CALL dia_wri_off( istp )
                                 CALL stp_ctl    ( istp, indic )  ! Time loop: control and print
          istp = istp + 1
          IF( lk_mpp )   CALL mpp_max( nstop )
