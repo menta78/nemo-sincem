@@ -816,7 +816,8 @@ CONTAINS
          imonth = kmonth
          iday = kday
          IF ( sdjf%cltype(1:4) == 'week' ) THEN             ! find the day of the beginning of the week
-            isec_week = ksec_week( sdjf%cltype(6:8) )- (86400 * 8 )  
+           !isec_week = ksec_week( sdjf%cltype(6:8) )- (86400 * 8 )  
+            isec_week = ksec_week( sdjf%cltype(6:8) )  
             llprevmth  = isec_week > nsec_month             ! longer time since beginning of the week than the month
             llprevyr   = llprevmth .AND. nmonth == 1
             iyear  = nyear  - COUNT((/llprevyr /))
