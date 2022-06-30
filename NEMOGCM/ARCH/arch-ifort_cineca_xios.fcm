@@ -1,0 +1,64 @@
+# mpi ifort compiler options for ATHENA using XIOS parallel writer server
+#
+#
+# NCDF_HOME   root directory containing lib and include subdirectories for netcdf4
+# HDF5_HOME   root directory containing lib and include subdirectories for HDF5
+# XIOS_HOME   root directory containing lib for XIOS
+# OASIS_HOME  root directory containing lib for OASIS
+#
+# NCDF_INC    netcdf4 include file
+# NCDF_LIB    netcdf4 library
+# XIOS_INC    xios include file    (taken into accound only if key_iomput is activated)
+# XIOS_LIB    xios library         (taken into accound only if key_iomput is activated)
+# OASIS_INC   oasis include file   (taken into accound only if key_oasis3 is activated)
+# OASIS_LIB   oasis library        (taken into accound only if key_oasis3 is activated)
+#
+# FC          Fortran compiler command
+# FCFLAGS     Fortran compiler flags
+# FFLAGS      Fortran 77 compiler flags
+# LD          linker
+# LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries
+# FPPFLAGS    pre-processing flags
+# AR          assembler
+# ARFLAGS     assembler flags
+# MK          make
+# USER_INC    complete list of include files
+# USER_LIB    complete list of libraries to pass to the linker
+# CC          C compiler used to compile conv for AGRIF
+# CFLAGS      compiler flags used with CC
+#
+# Note that:
+#  - unix variables "$..." are accpeted and will be evaluated before calling fcm.
+#  - fcm variables are starting with a % (and not a $)
+#
+
+# required modules
+#module load intel19.5 impi19.5 intel19.5/szip impi19.5/hdf5-threadsafe/1.10.5 impi19.5/netcdf-threadsafe/C_4.7.2-F_4.5.2_CXX_4.3.1 impi19.5/parallel-netcdf/1.12.0 curl/7.66.0
+#
+%NETCDF  /cineca/prod/opt/libraries/netcdf/4.7.4/intelmpi--oneapi-2021--binary/
+%NETCDFF /cineca/prod/opt/libraries/netcdff/4.5.3/intelmpi--oneapi-2021--binary/
+%PNETCDF /cineca/prod/opt/libraries/pnetcdf/1.12.2/intelmpi--oneapi-2021--binary/
+%HDF5    /cineca/prod/opt/libraries/hdf5/1.10.7/intelmpi--oneapi-2021--binary/
+%XIOS    /g100/home/userexternal/lmentasc/src/svn/xios-2.0/
+
+%NCDF_INC            -I${NETCDF}/include -I${NETCDFF}/include -I${PNETCDF}/include
+%NCDF_LIB            -L${NETCDFF}/lib -lnetcdff -L${NETCDF}/lib -lnetcdf -L${PNETCDF}/lib -lpnetcdf
+%HDF5_INC            -I${HDF5}/include
+%HDF5_LIB            -L${HDF5}/lib -lhdf5_hl -lhdf5
+%XIOS_INC            -I${XIOS}/inc
+%XIOS_LIB            -L${XIOS}/lib -lxios
+%CPP                 gcc -E
+%FC                  mpiifort
+#%FCFLAGS             -r8 -xSKYLAKE-AVX512 -qopt-zmm-usage=high -O3 -fp-model source -traceback
+%FCFLAGS             -r8 -xHost -O3 -qopt-zmm-usage=high -fp-model source -traceback
+%FFLAGS              %FCFLAGS
+%LD                  mpiifort
+%FPPFLAGS            -P -C -traditional
+%LDFLAGS             -lstdc++ -lz -lgpfs -L/g100_work/PROJECTS/spack/v0.16/install/0.16.2/linux-centos8-cascadelake/gcc-10.2.0/curl-7.72.0-opjpmvz55oiz727d3jzzrafda7dv4kjx/lib -lcurl
+%AR                  ar
+%ARFLAGS             -r
+%MK                  gmake
+%USER_INC            %XIOS_INC %NCDF_INC %HDF5_INC
+%USER_LIB            %XIOS_LIB %NCDF_LIB %HDF5_LIB
+%CC                  cc
+%CFLAGS              -O0
