@@ -120,7 +120,7 @@ CONTAINS
       INTEGER, INTENT(in) ::   kt             ! ocean time-step index
       INTEGER, INTENT(in) ::   Kbb, Kmm, Kaa  ! ocean time level indices
       !
-      INTEGER             ::   ji, jj, jk
+      INTEGER             ::   ji, jj, jk, iix, iiy
       REAL(wp), ALLOCATABLE, DIMENSION(:,:)   ::   zemp
       REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) ::   zhdivtr
       !!----------------------------------------------------------------------
@@ -151,14 +151,21 @@ CONTAINS
       uu(:,:,:,Kmm)        = sf_dyn(jf_uwd)%fnow(:,:,:) * umask(:,:,:)    ! effective u-transport
       vv(:,:,:,Kmm)        = sf_dyn(jf_vwd)%fnow(:,:,:) * vmask(:,:,:)    ! effective v-transport
       ww(:,:,:)            = sf_dyn(jf_wwd)%fnow(:,:,:) * tmask(:,:,:)    ! effective v-transport
+     !write(numout, *), 'menta, sf_dyn(jf_uwd)%fnow, umask, uu at 10, 10: ', sf_dyn(jf_uwd)%fnow(10,10,1), umask(10,10,1), uu(10,10,1,Kmm)
+     !write(numout, *), 'menta, sf_dyn(jf_vwd)%fnow, vmask, vv at 10, 10: ', sf_dyn(jf_vwd)%fnow(10,10,1), vmask(10,10,1), vv(10,10,1,Kmm)
+   !  iix=323
+   !  iiy=111
+   !  write(numout, *), 'menta, sf_dyn(jf_uwd)%fnow, umask, uu at iix, iiy: ', sf_dyn(jf_uwd)%fnow(iiy,iix,1), umask(iiy,iix,1), uu(iiy,iix,1,Kmm)
+   !  write(numout, *), 'menta, sf_dyn(jf_vwd)%fnow, vmask, vv at iix, iiy: ', sf_dyn(jf_vwd)%fnow(iiy,iix,1), vmask(iiy,iix,1), vv(iiy,iix,1,Kmm)
       !
       IF( .NOT.ln_linssh ) THEN
          ALLOCATE( zemp(jpi,jpj) , zhdivtr(jpi,jpj,jpk) )
-         zhdivtr(:,:,:) = sf_dyn(jf_div)%fnow(:,:,:)  * tmask(:,:,:)    ! effective u-transport
-         emp_b  (:,:)   = sf_dyn(jf_empb)%fnow(:,:,1) * tmask(:,:,1)    ! E-P
-         zemp   (:,:)   = ( 0.5_wp * ( emp(:,:) + emp_b(:,:) ) + rnf(:,:) ) * tmask(:,:,1)
+       ! zhdivtr(:,:,:) = sf_dyn(jf_div)%fnow(:,:,:)  * tmask(:,:,:)    ! effective u-transport
+       ! emp_b  (:,:)   = sf_dyn(jf_empb)%fnow(:,:,1) * tmask(:,:,1)    ! E-P
+       ! zemp   (:,:)   = ( 0.5_wp * ( emp(:,:) + emp_b(:,:) ) + rnf(:,:) ) * tmask(:,:,1)
 #if defined key_qco
-         CALL dta_dyn_ssh( kt, zhdivtr, ssh(:,:,Kbb), zemp, ssh(:,:,Kaa) )
+       ! CALL dta_dyn_ssh( kt, zhdivtr, ssh(:,:,Kbb), zemp, ssh(:,:,Kaa) )
+         ssh(:,:,Kaa) = sf_dyn(jf_empb)%fnow(:,:,1) * tmask(:,:,1)
          CALL dom_qco_r3c( ssh(:,:,Kaa), r3t(:,:,Kaa), r3u(:,:,Kaa), r3v(:,:,Kaa) )
 #else
          CALL dta_dyn_ssh( kt, zhdivtr, ssh(:,:,Kbb), zemp, ssh(:,:,Kaa), e3t(:,:,:,Kaa) )  !=  ssh, vertical scale factor
@@ -299,6 +306,7 @@ CONTAINS
       !
       ! Open file for each variable to get his number of dimension
       DO ifpr = 1, jfld
+         write(numout, *), 'menta, ', sf_dyn(ifpr)%clvar
          CALL fld_def( sf_dyn(ifpr) )
          CALL iom_open( sf_dyn(ifpr)%clname, sf_dyn(ifpr)%num )
          idv   = iom_varid( sf_dyn(ifpr)%num , slf_d(ifpr)%clvar )        ! id of the variable sdjf%clvar
@@ -335,11 +343,13 @@ CONTAINS
            CALL iom_get( numrtr, jpdom_auto, 'sshn', ssh(:,:,Kmm)   )
            CALL iom_get( numrtr, jpdom_auto, 'sshb', ssh(:,:,Kbb)   )
         ELSE
-           IF(lwp) WRITE(numout,*) ' ssh(:,:,Kmm) forcing fields read in the restart file for initialisation'
-           CALL iom_open( 'restart', inum )
-           CALL iom_get( inum, jpdom_auto, 'sshn', ssh(:,:,Kmm)   )
-           CALL iom_get( inum, jpdom_auto, 'sshb', ssh(:,:,Kbb)   )
-           CALL iom_close( inum )                                        ! close file
+         ! IF(lwp) WRITE(numout,*) ' ssh(:,:,Kmm) forcing fields read in the restart file for initialisation'
+         ! CALL iom_open( 'restart', inum )
+         ! CALL iom_get( inum, jpdom_auto, 'sshn', ssh(:,:,Kmm)   )
+         ! CALL iom_get( inum, jpdom_auto, 'sshb', ssh(:,:,Kbb)   )
+         ! CALL iom_close( inum )                                        ! close file
+           ssh(:,:,Kmm) = 0
+           ssh(:,:,Kbb) = 0
         ENDIF
         !
 #if ! defined key_linssh
